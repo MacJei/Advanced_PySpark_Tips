@@ -56,7 +56,7 @@ my_udf = F.udf( lambda r: func(r), T.DoubleType())
 x = x.withColumn(my_udf(F.struct([x[col] for col in x.columns])
 ```
 
-### _pivot_ on _unpivot_
+### _pivot_ and _unpivot_
 ```python
 import pyspark.sql.functions as F
 
@@ -69,7 +69,7 @@ unpivot = data.select(*pivot_cols, F.expr(exprs))
 pivot_table = unpivot.groupBy(group_cols).pivot(to_cols_col).sum(val_col)
 ```
 
-### List of agg operations
+### List of _agg_ operations
 ```python
 # option 1
 import pyspark.sql.functions as F
@@ -205,3 +205,4 @@ Check error SPARK-5063: [explanation](https://stackoverflow.com/questions/313963
 9. `F.regexp_extract` will return empty string `''` when no match instead of `null`
 10. When use `MERGE INTO` function of __DataBricks__, make sure all match_on columns have no null value, otherwise, it will insert new rows instead of update existing ones, because `null` and `null` doesn't match. The same when do `join` operation.
 11. Do `select` before other operations will speed up a lot, especially when the source data are huge.
+12. Clarify data type before comparison operation. In python `'0.9' > 0 == False` (in this case `'0.9'` is casted to __IntegerType__). Two solution: 1. `'0.9' > 0.0`; 2. cast StringType column to numeric.
