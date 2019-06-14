@@ -62,7 +62,7 @@ unpivot = data.select(*pivot_cols, F.expr(exprs))
 pivot_table = unpivot.groupBy(group_cols).pivot(to_cols_col).sum(val_col)
 ```
 
-### List of agg operations
+### List of _agg_ operations
 ```python
 # option 1
 import pyspark.sql.functions as F
@@ -87,7 +87,19 @@ def  _rename_after_agg(df, agg_ops):
 	return df
 ```
 
-###
+### Explode array
+In case that you need to add missing rows related to a column.
+```
+A | B        A | B
+--|----      --|----
+1 | 'a'      1 | 'a'
+3 | 'b'      2 | 'a'
+         =>  3 | 'a'
+             1 | 'a'
+             2 | 'b'
+             3 | 'b'                  
+```
+Or just need a continuous sequence.
 ```python
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
