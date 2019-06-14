@@ -1,12 +1,7 @@
-# Advanced_PySpark_Tips
-A collection of advanced pySpark tips
-
-## Advanced operations in pySpark
+## Advanced tips of pySpark
 
 ### Complicated condition in _when_ or _filter_
 ```python
-x = spark.table('table')
-
 from operator import and_, or_
 from functools import reduce
 import pyspark.sql.functions as F
@@ -19,19 +14,17 @@ reg_exp = {
   'operation new earth': ['one%'],
 }
 
-game_col = []
+_cols = []
 for game, reg_list in reg_exp.items():
   condition = all_or([F.lower(F.col('name')).like(reg_) for reg_ in reg_list])
-  game_col.append(F.when(condition, F.lit(game)))
-game_col[-1] = game_col[-1].otherwise(F.lit('others'))
+  _cols.append(F.when(condition, F.lit(game)))
+_cols[-1] = _cols[-1].otherwise(F.lit('others'))
 
-x = x.withColumn('game', F.coalesce(*game_col))
+data = data.withColumn('game', F.coalesce(*_cols))
 ```
 
 ### _udf_ with dynamic arguments
 ```python
-x = spark.table('table')
-
 import pyspark.sql.functions as F
 
 def define_lt_udf(argument_list, game):
@@ -44,7 +37,7 @@ def define_lt(argument_list):
   return F.udf(lambda game: define_lt_udf(argument_list, game))
 
 argument_list = ['languinis', 'operation new earth']
-x = x.withColumn('if_in_list', define_lt(argument_list)(F.col('game')))
+data = data.withColumn('if_in_list', define_lt(argument_list)(F.col('game')))
 ```
 
 ### _udf_ on _row_ level
@@ -53,7 +46,7 @@ import pyspark.sql.functions as F
 import pyspark.sql.types as T
 
 my_udf = F.udf( lambda r: func(r), T.DoubleType())
-x = x.withColumn(my_udf(F.struct([x[col] for col in x.columns])
+data = data.withColumn(my_udf(F.struct([data[col] for col in data.columns])
 ```
 
 ### _pivot_ and _unpivot_
@@ -69,7 +62,7 @@ unpivot = data.select(*pivot_cols, F.expr(exprs))
 pivot_table = unpivot.groupBy(group_cols).pivot(to_cols_col).sum(val_col)
 ```
 
-### List of _agg_ operations
+### List of agg operations
 ```python
 # option 1
 import pyspark.sql.functions as F
@@ -92,6 +85,17 @@ def  _rename_after_agg(df, agg_ops):
 	renames = [("{}({})".format(v, k), k) for k, v in agg_ops.items()]
 	df = reduce(lambda df, name: df.withColumnRenamed(name[0], name[1]), renames, df)
 	return df
+```
+
+###
+```python
+import pyspark.sql.functions as F
+import pyspark.sql.types as T
+
+n_to_array = F.udf(lambda x : list(range(x)), T.ArrayType(T.IntegerType()))
+
+data = data.withColumn('int_list', n_to_array(F.col('int_col')))
+data = data.withColumn('exploded_int_col', F.explode(F.col('int_list')))
 ```
 ### Some useful functions
 ```python
@@ -205,4 +209,4 @@ Check error SPARK-5063: [explanation](https://stackoverflow.com/questions/313963
 9. `F.regexp_extract` will return empty string `''` when no match instead of `null`
 10. When use `MERGE INTO` function of __DataBricks__, make sure all match_on columns have no null value, otherwise, it will insert new rows instead of update existing ones, because `null` and `null` doesn't match. The same when do `join` operation.
 11. Do `select` before other operations will speed up a lot, especially when the source data are huge.
-12. Clarify data type before comparison operation. In python `'0.9' > 0 == False` (in this case `'0.9'` is casted to __IntegerType__). Two solution: 1. `'0.9' > 0.0`; 2. cast StringType column to numeric.
+12. Clarify data type before comparison operation. In python `'0.9' > 0 == False` (in this case `'0.9'` is casted to __IntegerType__). Two solution: 1. `'0.9' > 0.0`; 2. cast StringType column into numeric.
