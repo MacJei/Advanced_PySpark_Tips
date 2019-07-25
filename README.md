@@ -111,7 +111,7 @@ data = data.withColumn('exploded_int_col', F.explode(F.col('int_list')))
 ```
 
 ### Forward / Backward fill
-[reference]([https://johnpaton.net/posts/forward-fill-spark/](https://johnpaton.net/posts/forward-fill-spark/))
+[reference](https://johnpaton.net/posts/forward-fill-spark/)
 ```python
 from pyspark.sql import Window
 from pyspark.sql.functions import F
