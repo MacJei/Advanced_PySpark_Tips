@@ -109,6 +109,29 @@ n_to_array = F.udf(lambda x : list(range(x)), T.ArrayType(T.IntegerType()))
 data = data.withColumn('int_list', n_to_array(F.col('int_col')))
 data = data.withColumn('exploded_int_col', F.explode(F.col('int_list')))
 ```
+
+### Forward / Backward fill
+[reference]([https://johnpaton.net/posts/forward-fill-spark/](https://johnpaton.net/posts/forward-fill-spark/))
+```python
+from pyspark.sql import Window
+from pyspark.sql.functions import F
+
+# define the window
+forward_fill_window = Window.partitionBy('group_col')\
+               .orderBy('time')\
+               .rowsBetween(-sys.maxsize, 0)
+# forward-filled column
+forward_filled_col = F.last(F.col('to_fill_col'), ignorenulls=True).over(forward_fill_window)
+forward_filled_df = data.withColumn('forward_filled_col', forward_filled_col)
+# define the window
+backward_fill_window = Window.partitionBy('group_col')\
+               .orderBy('time')\
+               .rowsBetween(0, sys.maxsize)
+# backward-filled column
+backward_filled_col = F.first(F.col('to_fill_col'), ignorenulls=True).over(backward_fill_window)
+backward_filled_df = data.withColumn('backward_filled_col', backward_filled_col)
+```
+
 ### Some useful functions
 ```python
 def all_add(a_list):
