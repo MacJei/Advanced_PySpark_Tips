@@ -51,12 +51,14 @@ data = data.withColumn(my_udf(F.struct([data[col] for col in data.columns])
 
 ### _pivot_ and _unpivot_
 pivot:
+
 CAT | A | B | C
 -----|-----|---|--
 cat1 |a1 | b1 | c1
 cat2 |a2 | b2 | c3
 
 unpivot:
+
 CAT | key | val
 -----|-----|--
 cat1 | A | a1 
