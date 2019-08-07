@@ -50,16 +50,37 @@ data = data.withColumn(my_udf(F.struct([data[col] for col in data.columns])
 ```
 
 ### _pivot_ and _unpivot_
+pivot:
+CAT | A | B | C
+-----|-----|---|--
+cat1 |a1 | b1 | c1
+cat2 |a2 | b2 | c3
+
+unpivot:
+CAT | key | val
+-----|-----|--
+cat1 | A | a1 
+cat2 | A | a2 
+cat1 | B | b1 
+cat2 | B | b2 
+cat1 | C | c1 
+cat2 | C | c2 
+
 ```python
 import pyspark.sql.functions as F
-
-for count_n in range(1,month_number):
-  sub_str =  "key_col_val_{x}, key_col_name_{x}".format(x = count_n)
+# pivot -> unpivot
+pivot_cols = ['CAT']
+sub_str_list = []
+for _col in ['A','B','C']:
+  # "value of column key, value of column val" in unpivot table
+  sub_str =  "'{}', {}".format(_col, _col)
   sub_str_list.append(sub_str)
-exprs = "stack({}, ".format(len(sub_str_list)+1) + ", ".join(sub_str_list)+") as (key_col, val_col)"
+exprs = "stack({}, ".format(len(sub_str_list)) + ", ".join(sub_str_list)+") as (key, val)"
 unpivot = data.select(*pivot_cols, F.expr(exprs))
+# exprs = "stack(3, 'A', A, 'B', B, 'C', C) as (key, val)"
 
-pivot_table = unpivot.groupBy(group_cols).pivot(to_cols_col).sum(val_col)
+# pivot -> unpivot
+pivot_table = unpivot.groupBy(pivot_cols).pivot(F.col('key')).agg({'val':'sum'})
 ```
 
 ### List of _agg_ operations
