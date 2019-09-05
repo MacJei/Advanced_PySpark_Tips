@@ -82,7 +82,7 @@ unpivot = data.select(*pivot_cols, F.expr(exprs))
 # exprs = "stack(3, 'A', A, 'B', B, 'C', C) as (key, val)"
 
 # pivot -> unpivot
-pivot_table = unpivot.groupBy(pivot_cols).pivot(F.col('key')).agg({'val':'sum'})
+pivot_table = unpivot.groupBy(pivot_cols).pivot('key').agg({'val':'sum'})
 ```
 
 ### List of _agg_ operations
