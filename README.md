@@ -157,6 +157,13 @@ backward_filled_df = data.withColumn('backward_filled_col', backward_filled_col)
 
 ### Some useful functions
 ```python
+def get_nb_path():
+	import json
+	path = (json.loads(dbutils.notebook.entry_point.getDbutils().notebook()
+		.getContext().toJson())['extraContext']['notebook_path'])
+	print(path)
+	return path
+  
 def all_add(a_list):
 	"""
 	To apply AND on all elements of list.
