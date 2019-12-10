@@ -275,3 +275,4 @@ Check error SPARK-5063: [explanation](https://stackoverflow.com/questions/313963
 10. When use `MERGE INTO` function of __DataBricks__, make sure all match_on columns have no null value, otherwise, it will insert new rows instead of update existing ones, because `null` and `null` doesn't match. The same when do `join` operation.
 11. Do `select` before other operations will speed up a lot, especially when the source data are huge.
 12. Clarify data type before comparison operation. In python `'0.9' > 0 == False` (in this case `'0.9'` is casted to __IntegerType__). Two solution: 1. `'0.9' > 0.0`; 2. cast StringType column into numeric.
+13. when `spark.driver.maxResultSize error` error happens, set`spark.driver.maxResultSize`: 8589934592
