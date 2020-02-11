@@ -155,6 +155,54 @@ backward_filled_col = F.first(F.col('to_fill_col'), ignorenulls=True).over(backw
 backward_filled_df = data.withColumn('backward_filled_col', backward_filled_col)
 ```
 
+### smote sampling
+```python
+def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'over':9, 'under':0.5}):
+  """
+  To implement smote sampling in spark environment.
+    args:
+      data (pyspark.DataFrame):      required a vectorized column named 'features'
+      label (str):                   target column name
+      k (int):                       k-nn
+      classes (dict()):              major and minor class
+      percentages (dict()):          the fraction of up and under sampling
+  """
+  
+  if percentages['under'] > 1 or percentages['under'] < 0.1:
+    raise ValueError("Percentage Under must be in range 0.1 - 1")
+  if percentages['over'] < 1:
+    raise ValueError("Percentage Over must be in at least 1")
+    
+  data = data.select(['features', label]).cache()
+  data_min = data.filter(F.col(label) == classes['min'])
+  data_maj = data.filter(F.col(label) == classes['maj'])
+  
+  # upsampling
+  feature_l = data_min.select('features').rdd.map(lambda x: x[0]).collect()
+  ## train knn
+  feature = np.asarray(feature_l)
+  nbrs = neighbors.NearestNeighbors(n_neighbors=k, algorithm='auto').fit(feature)
+  neighbours =  nbrs.kneighbors(feature)[1]
+  ## upsample by knn
+  new_rows = []
+  for i in range(len(feature_l)):
+    for j in range(int(percentages['over'])):
+      neigh = random.randint(1,k)
+      difs = feature_l[neigh] - feature_l[i]
+      new_rec = feature_l[i]+random.random()*difs
+      new_rows.append((new_rec))
+  new_rdd = sc.parallelize(new_rows)
+  new_data = new_rdd.map(lambda x: Row(features = x, label = 1)).toDF()
+  new_data_minor = data_min.unionAll(new_data)
+  
+  # undersampling
+  new_data_major = data_maj.sample(False, (float(percentages['under'])))
+  return new_data_major.unionAll(new_data_minor)
+
+# res = SmoteSampling(test, 'payer')
+# display(res.groupBy('payer').count())
+```
+
 ### Some useful functions
 ```python
 def get_nb_path():
