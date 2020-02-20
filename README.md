@@ -241,15 +241,6 @@ def union_all(*dfs):
 	from functools import reduce
 	from pyspark.sql.dataframe import DataFrame
 	return reduce(DataFrame.unionByName, dfs).cache()
-	
-def MSG(msg):
-	"""
-	To print log format information.
-	args:
-		msg (str)
-	"""
-	from datetime import datetime
-	print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ':  '+ msg)
 
 def update_by_merge(source, update, match_on, update_when_matched = True, update_sets = None, if_run = True, insert_not_match = True, show_stats = True):
 	"""
