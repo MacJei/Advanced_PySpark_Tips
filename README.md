@@ -214,13 +214,13 @@ def get_nb_path():
   
 def all_add(a_list):
 	"""
-	To apply AND on all elements of list.
+	To apply ADD on all elements of list.
 	args:
 		a_list [boolean]: list of boolean elements
 	"""
 	from functools import reduce
-	from operator import and_
-	return reduce(and_, a_list)
+	from operator import add
+	return reduce(add, a_list)
 	
 def all_or(a_list):
 	"""
