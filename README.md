@@ -157,7 +157,7 @@ backward_filled_df = data.withColumn('backward_filled_col', backward_filled_col)
 
 ### smote sampling
 ```python
-def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'over':9, 'under':0.5}):
+def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'over':9.0, 'under':0.5}):
   """
   To implement smote sampling in spark environment.
     args:
@@ -168,6 +168,7 @@ def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'o
       percentages (dict()):          the fraction of up and under sampling
   """
   
+  random.seed(100)
   if percentages['under'] > 1 or percentages['under'] < 0.1:
     raise ValueError("Percentage Under must be in range 0.1 - 1")
   if percentages['over'] < 1:
@@ -186,21 +187,41 @@ def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'o
   ## upsample by knn
   new_rows = []
   for i in range(len(feature_l)):
-    for j in range(int(percentages['over'])):
-      neigh = random.randint(1,k)
-      difs = feature_l[neigh] - feature_l[i]
-      new_rec = feature_l[i]+random.random()*difs
-      new_rows.append((new_rec))
+    for j in range(ceil(percentages['over'])):
+      if random.uniform(0,1) >= (1 - percentages['over']/ceil(percentages['over'])):
+        neigh = random.randint(1,k)
+        difs = feature_l[neigh] - feature_l[i]
+        new_rec = feature_l[i]+random.random()*difs
+        new_rows.append((new_rec))
   new_rdd = sc.parallelize(new_rows)
   new_data = new_rdd.map(lambda x: Row(features = x, label = 1)).toDF()
   new_data_minor = data_min.unionAll(new_data)
   
   # undersampling
-  new_data_major = data_maj.sample(False, (float(percentages['under'])))
+  new_data_major = data_maj.sample(withReplacement=False, fraction=float(percentages['under']), seed=1024)
   return new_data_major.unionAll(new_data_minor)
+```
 
-# res = SmoteSampling(test, 'payer')
-# display(res.groupBy('payer').count())
+### fittedPipeline
+```python
+from pyspark.ml.param import Param, Params
+from pyspark.ml import *
+class fittedPipeline(Pipeline):
+  """
+  It's a inheritance of Pipeline in pyspark.ml.
+  It allows to put in fitted models, in which way, you can have different sampling strategies for each model.
+  """
+  stages = Param(Params._dummy(), "stages", "a list of pipeline stages")
+  def __init__(self, stages=None):
+    super().__init__(stages =stages)
+ 
+  def _fit(self, dataset):
+    print('this is a fake fit to put fitted model into a pipeline')
+    transformers = []
+    stages = self.getStages()
+    for i, stage in enumerate(stages):
+      transformers.append(stage)
+    return PipelineModel(transformers)
 ```
 
 ### Some useful functions
