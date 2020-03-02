@@ -194,7 +194,7 @@ def smote_sampling(data, label, k=5, classes={'maj':0, 'min':1}, percentages={'o
         new_rec = feature_l[i]+random.random()*difs
         new_rows.append((new_rec))
   new_rdd = sc.parallelize(new_rows)
-  new_data = new_rdd.map(lambda x: Row(features = x, label = 1)).toDF()
+  new_data = new_rdd.map(lambda x: Row(features = x, label = classes['min'])).toDF()
   new_data_minor = data_min.unionAll(new_data)
   
   # undersampling
