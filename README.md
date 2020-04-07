@@ -307,6 +307,20 @@ def update_by_merge(source, update, match_on, update_when_matched = True, update
 
 	return clause
 ```
+
+### NLP
+
+```python
+!pip install spark-nlp==1.7.3
+#jarPath = "spark-nlp-assembly-1.7.3.jar"
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder \
+    .config("spark.jars.packages", "JohnSnowLabs:spark-nlp:1.8.2") \
+    .getOrCreate()
+    
+from com.johnsnowlabs.nlp.pretrained.pipeline.en import BasicPipeline as bp
+```
 ----------------------
 
 ## Some small thing which may kill you in pySpark
